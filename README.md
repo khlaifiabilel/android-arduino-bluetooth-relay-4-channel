@@ -1,119 +1,92 @@
-<center><a href="https://developer.android.com/studio"><img src="https://www.xda-developers.com/files/2018/06/android-studio-featured-810x298_c.png" title="Android Studio" alt="Android Studio"></a></center>
+# Android Arduino Bluetooth Relay Controller
 
-# Android-Arduino-Automotive
+An Android and Arduino demonstration for controlling four relay channels over
+Bluetooth Classic. The Android app selects an already-paired controller and
+sends one-byte commands over an insecure RFCOMM serial connection; the Arduino
+sketch reads serial input from an HC-05-style module and toggles pins 4 through
+7.
 
-<img alt="GitHub followers" src="https://img.shields.io/github/followers/kalifiabillal?color=yellow&label=kalifiabillal&style=for-the-badge">   <img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/kalifiabillal/Android-Arduino-Automotive?style=for-the-badge">   <img alt="Visual Studio App Center (Minimum) OS Version" src="https://img.shields.io/visual-studio-app-center/releases/osver/kalifiabillal/Android-Arduino-Automotive/a87b9e745655355612fff4418953e0c3f7074250?style=for-the-badge">   <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/Kalifiabillal/Android-Arduino-Automotive?color=green&style=for-the-badge">   <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/y/kalifiabillal/Android-Arduino-Automotive?style=for-the-badge">   <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/Kalifiabillal/Android-Arduino-Automotive?color=pink&logo=pink&style=for-the-badge">
-# Repository Titles
+## Important protocol mismatch
 
-> How to Install Android Studio on Ubuntu 18.04
+The checked-in Android and Arduino components do **not** currently speak the
+same command protocol:
 
-> Arduino project
+- Android sends numeric bytes `1` through `4` for on and `5` through `8` for
+  off.
+- `arduino/hc05_4relay.ino` expects ASCII characters `A` through `H`.
 
-# How to Install Android Studio on Ubuntu 18.04
+They will not operate together without aligning one side in a separate code
+change. This repository is therefore best treated as reference material, not a
+ready-to-deploy controller.
 
-![Android Studio](https://www.mindinventory.com/blog/wp-content/uploads/2020/03/Android-studio-36-1520x500.png)
+## Hardware represented
 
-Android Studio is a full-featured cross-platform IDE that helps you build applications on every type of Android device. It is based on JetBrains’ IntelliJ IDEA and includes everything you need for Android development.
+- Android device with Bluetooth Classic support
+- Arduino-compatible board
+- HC-05-compatible serial Bluetooth module at 9600 baud
+- Four-channel, active-low relay module on digital pins 4, 5, 6, and 7
 
-Android Studio build system is powered by Gradle allowing you to create multiple build variants for different devices from a single project.
+The sketch uses Arduino `SoftwareSerial` with pin 2 as RX and pin 3 as TX.
+Repository diagrams also cover other relay/Raspberry Pi hardware; they are
+reference assets and are not driven by the Android application.
 
-This tutorial explains how to install Android Studio on Ubuntu 18.04. The same instructions apply for Ubuntu 16.04 and any Ubuntu-based distribution, including Kubuntu, Linux Mint, and Elementary OS.
+## Android build
 
-***Prerequisites***
+The app uses Android Gradle Plugin 3.0.1, Gradle 4.1, SDK 26, the old Android
+Support Library, and JCenter. Reproduce it only in an isolated Java 8-era
+Android environment.
 
-You’ll need to be logged in as a user with sudo access to be able to install packages on your Ubuntu system.
-
-***Installing Java OpenJDK***
-
-Android Studio requires OpenJDK version 8 or above to be installed to your system.
-We’ll install OpenJDK 8. The installation is pretty simple, start by updating the package index:
-
-***Installing Java OpenJDK***
-
-Android Studio requires OpenJDK version 8 or above to be installed to your system.
-We’ll install OpenJDK 8. The installation is pretty simple, start by updating the package index:
-
-```javascript
-// Run
-
-sudo apt update
-
-```
-Install the OpenJDK 8 package by typing:
-
-```javascript
-// Run
-
-sudo apt install openjdk-8-jdk
-
-```
-Verify the installation by typing the following command which will print the Java version:
-
-```javascript
-// Run
-
-java -version
-
+```bash
+git clone https://github.com/khlaifiabilel/android-arduino-bluetooth-relay-4-channel.git
+cd android-arduino-bluetooth-relay-4-channel
+./gradlew assembleDebug
 ```
 
-The output should look something like this:
+The manifest declares minimum SDK 19, target SDK 26, and Bluetooth/Bluetooth
+Admin permissions. Pair the controller in Android system settings before
+selecting it in the app. Modern Android releases impose additional Bluetooth
+permission and compatibility requirements that this target-26 app does not
+implement.
 
-```javascript
-// The output
+## Arduino sketch
 
-openjdk version "1.8.0_191"
-OpenJDK Runtime Environment (build 1.8.0_191-8u191-b12-2ubuntu0.18.04.1-b12)
-OpenJDK 64-Bit Server VM (build 25.191-b12, mixed mode)
+Open `arduino/hc05_4relay.ino` in the Arduino IDE, select the correct board and
+port, verify the wiring and relay polarity, then compile before upload. The
+sketch initializes every relay output `HIGH` (off for a typical active-low
+module).
 
-```
-***Installing Android Studio***
+Do not connect mains voltage on a breadboard or without appropriately rated,
+enclosed hardware and qualified supervision. Test first with low-voltage loads.
 
-At the time of writing this article, the latest stable version of Android Studio is version 3.3.1.0. The easiest way is to install Android Studio on Ubuntu 18.04 is by using the snappy packaging system.
+## Checks
 
-To download and install the Android Studio snap package, open your terminal using the Ctrl+Alt+T keyboard shortcut and type:
+The Android project contains only generated test stubs. The smallest checks are
+`./gradlew assembleDebug` in a compatible toolchain and Arduino IDE **Verify**
+for the selected board. Hardware behavior requires a paired device and a
+low-voltage bench test.
 
-```javascript
-// run
+## Configuration and security
 
-sudo snap install android-studio --classic
+No API key or password is required. Android stores the selected device name and
+MAC address in app-private shared preferences and uses the standard serial-port
+UUID. The RFCOMM socket is explicitly insecure and has no application-level
+authentication or encryption; pair only with a trusted controller.
 
-```
-Once the installation is complete, you will see the following output:
+## Provenance
 
-```javascript
-// The output
+The Android package and source correspond to
+[`aagarwal1012/Home-Automation`](https://github.com/aagarwal1012/Home-Automation),
+an MIT-licensed project created in 2018. This repository imported that Android
+code and added Arduino/relay reference material in 2020; its Git history has two
+initial roots from that import. `AwesomeToggle.java` also retains its original
+author annotation. This repository is not marked as a GitHub fork, so the
+relationship is recorded explicitly here.
 
-android-studio 3.3.1.0 from Snapcrafters installed
-```
-That’s it. Android Studio has been installed on your Ubuntu desktop.
+## License
 
-# Arduino project
-
-![Arduino cover](https://scontent.ftun1-1.fna.fbcdn.net/v/t1.0-9/13645146_1429686307057684_8500685619593774449_n.png?_nc_cat=106&_nc_sid=dd9801&_nc_ohc=2S3wf_2HAFMAX84Stun&_nc_ht=scontent.ftun1-1.fna&oh=c67fbb17886d7f4eb1a21e474266c822&oe=5EBF053D)
-
-***Arduino IDE***
-
-The Arduino Integrated Development Environment is a cross-platform application that is written in functions from C and C++. It is used to write and upload programs to Arduino compatible boards, but also, with the help of 3rd party cores, other vendor development boards.
-
-***Which language is used in Arduino IDE?***
-
-The "Arduino language" is simply C++ (and therefore also C). All the standard system librarys are written in C/C++ and the IDE uses the gcc g++ compiler.
-
-![Arduino](https://i.pinimg.com/564x/c6/b4/72/c6b4725ca5fcde572245ced9ade303be.jpg)
-
-# FAQ
-
-- **How do I do *specifically* so and so?**
-    - No problem! Just do this.
-
-# Support
-
-Reach out to me at one of the following places!
-
-- Linkedin at <a href="https://www.linkedin.com/in/kalifiabillal/" target="_blank">`Kalifiabillal`</a>
-- Twitter at <a href="https://twitter.com/kalifiabillal" target="_blank">`@Kalifiabillal`</a>
-
-# License
-
-- **[MIT license](http://opensource.org/licenses/mit-license.php)**
-- Copyright 2015 © <a href="https://github.com/KalifiaBillal" target="_blank">Kalifiabillal</a>.
+The upstream Android project is MIT licensed, but this repository does not
+contain its `LICENSE` file. The Arduino `ReadMe.adoc` says "Public Domain" while
+also retaining unfilled template fields; that statement applies at most to the
+sketch material and is not a clear repository-wide license. No overall license
+is asserted here. Review the upstream MIT terms and each bundled asset's origin
+before reuse.
