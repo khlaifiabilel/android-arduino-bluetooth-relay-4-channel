@@ -84,9 +84,8 @@ relationship is recorded explicitly here.
 
 ## License
 
-The upstream Android project is MIT licensed, but this repository does not
-contain its `LICENSE` file. The Arduino `ReadMe.adoc` says "Public Domain" while
-also retaining unfilled template fields; that statement applies at most to the
-sketch material and is not a clear repository-wide license. No overall license
-is asserted here. Review the upstream MIT terms and each bundled asset's origin
-before reuse.
+This repository is available under the [MIT License](LICENSE). The imported
+Android project was also distributed under MIT terms. The Arduino
+`ReadMe.adoc` separately says "Public Domain" while retaining unfilled template
+fields; preserve that notice and any attribution attached to imported or
+bundled material. The repository license does not replace third-party terms.
